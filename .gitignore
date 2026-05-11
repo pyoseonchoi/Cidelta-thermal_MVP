@@ -1,10 +1,24 @@
+# Python 관련
 __pycache__/
 *.py[cod]
 *$py.class
 .venv/
-env/
 venv/
-ENV/
-outputs/
-data/sample_thermal/*.png
+.pytest_cache/
+
+# Blender 관련
 *.blend1
+*.blend2
+
+# OS 관련
+.DS_Store
+Thumbs.db
+
+# 데이터 관련 (개인정보나 고용량 실제 데이터 보호)
+data/raw/
+data/private/
+data/real_thermal/
+
+# 출력물 (폴더 구조는 유지하고 파일만 무시)
+outputs/**/*
+!outputs/**/.gitkeep
