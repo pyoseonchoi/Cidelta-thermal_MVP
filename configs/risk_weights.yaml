@@ -1,0 +1,4 @@
+risk_weights:
+  temperature_deviation: 0.4
+  anomaly_size: 0.3
+  location_criticality: 0.3

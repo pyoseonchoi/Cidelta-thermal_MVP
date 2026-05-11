@@ -1,0 +1,4 @@
+thermal_analysis:
+  threshold: 35.5
+  normalization_range: [0, 255]
+  color_map: "JET"
