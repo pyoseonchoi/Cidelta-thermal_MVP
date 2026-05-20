@@ -1,1 +1,74 @@
-{}
+{
+    "image_id": "thermal_0001",
+    "dimensions": {
+        "width": 640,
+        "height": 480
+    },
+    "annotations": [
+        {
+            "id": 1,
+            "category": "anomaly",
+            "label": "leakage",
+            "bbox": [
+                120,
+                200,
+                50,
+                80
+            ],
+            "segmentation": [
+                [
+                    120,
+                    200,
+                    170,
+                    200,
+                    170,
+                    280,
+                    120,
+                    280
+                ]
+            ],
+            "thermal_info": {
+                "max_temp": 38.5,
+                "min_temp": 32.2,
+                "avg_temp": 35.4,
+                "unit": "Celsius"
+            },
+            "risk_score": 0.85
+        },
+        {
+            "id": 2,
+            "category": "structure",
+            "label": "joint",
+            "bbox": [
+                300,
+                100,
+                20,
+                300
+            ],
+            "segmentation": [
+                [
+                    300,
+                    100,
+                    320,
+                    100,
+                    320,
+                    400,
+                    300,
+                    400
+                ]
+            ],
+            "thermal_info": {
+                "max_temp": 28.1,
+                "min_temp": 26.5,
+                "avg_temp": 27.3,
+                "unit": "Celsius"
+            },
+            "risk_score": 0.1
+        }
+    ],
+    "global_metadata": {
+        "capture_time": "2026-05-14T10:00:00Z",
+        "ambient_temp": 25.0,
+        "emissivity": 0.95
+    }
+}
