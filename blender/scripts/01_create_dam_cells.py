@@ -81,17 +81,8 @@ mat_water = make_mat("Water", (0.15, 0.42, 0.95, 0.35), 0.35)
 mat_selector = make_mat("Slice_Selector_Transparent", (1.0, 1.0, 1.0, 0.06), 0.06)
 mat_boundary = make_mat("5m_Boundary_Black", (0.0, 0.0, 0.0, 1.0))
 
-mat_stable = make_mat("Stable_Green", (0.25, 0.80, 0.25, 1.0))
-
-# 바깥으로 튀어나온 경우
-mat_out_low  = make_mat("Outward_Low_Yellow", (0.95, 0.88, 0.20, 1.0))
-mat_out_mid  = make_mat("Outward_Mid_Orange", (1.00, 0.52, 0.10, 1.0))
-mat_out_high = make_mat("Outward_High_Red", (0.90, 0.08, 0.08, 1.0))
-
-# 안쪽으로 들어간 경우
-mat_in_low  = make_mat("Inward_Low_SkyBlue", (0.45, 0.80, 1.00, 1.0))
-mat_in_mid  = make_mat("Inward_Mid_Blue", (0.15, 0.40, 0.95, 1.0))
-mat_in_high = make_mat("Inward_High_Purple", (0.62, 0.25, 0.90, 1.0))
+# Default grey material for cells (replacing arbitrary displacement colors)
+mat_default_cell = make_mat("Default_Cell_Grey", (0.70, 0.70, 0.70, 1.0))
 
 mat_wire = make_mat("Black_Cell_Edges", (0.02, 0.02, 0.02, 1.0))
 
@@ -196,24 +187,9 @@ def displacement_class(displacement):
             return "in_high", 3, "inward"
 
 def get_material_for_displacement(displacement):
+    # Returns default cell gray and the corresponding classification metadata
     color_name, magnitude_level, direction = displacement_class(displacement)
-
-    if color_name == "stable":
-        return mat_stable, color_name, magnitude_level, direction
-    if color_name == "out_low":
-        return mat_out_low, color_name, magnitude_level, direction
-    if color_name == "out_mid":
-        return mat_out_mid, color_name, magnitude_level, direction
-    if color_name == "out_high":
-        return mat_out_high, color_name, magnitude_level, direction
-    if color_name == "in_low":
-        return mat_in_low, color_name, magnitude_level, direction
-    if color_name == "in_mid":
-        return mat_in_mid, color_name, magnitude_level, direction
-    if color_name == "in_high":
-        return mat_in_high, color_name, magnitude_level, direction
-
-    return mat_stable, "stable", 0, "neutral"
+    return mat_default_cell, color_name, magnitude_level, direction
 
 # =========================================================
 # 6. 컬렉션

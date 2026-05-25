@@ -103,6 +103,13 @@ def main():
         type=str,
         help="Explicit path to blender.exe (skips auto-detection)"
     )
+    parser.add_argument(
+        "--dam-type",
+        type=str,
+        default="concrete",
+        choices=["concrete", "earthfill"],
+        help="Type of dam material: concrete or earthfill (default: concrete)"
+    )
     
     args = parser.parse_args()
     
@@ -119,6 +126,7 @@ def main():
         
     print(f"[*] Blender path located: {blender_path}")
     print(f"[*] Analyzing image:      {args.image}")
+    print(f"[*] Dam Material Type:    {args.dam_type.upper()}")
     
     # Locate Python
     python_path = find_python(project_root)
@@ -150,7 +158,8 @@ def main():
     cmd_step2 = [
         python_path,
         "-m", "src.thermal.run_pipeline",
-        "--image", args.image
+        "--image", args.image,
+        "--dam-type", args.dam_type
     ]
     run_command(cmd_step2, "Step 2: Python Thermal Analysis Pipeline")
     

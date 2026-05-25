@@ -2,7 +2,7 @@ import os
 import yaml
 import numpy as np
 
-def risk_score(cells_data, config_path=None, weights_path=None):
+def risk_score(cells_data, config_path=None, weights_path=None, dam_type="concrete"):
     """
     Calculates the combined risk score and categorical risk level for each dam grid cell.
     Amplifies thermal seepage risk if it occurs near the dam foundation.
@@ -11,6 +11,7 @@ def risk_score(cells_data, config_path=None, weights_path=None):
         cells_data (dict): Dictionary containing cell records and metadata.
         config_path (str, optional): Path to thermal configuration.
         weights_path (str, optional): Path to risk weights YAML.
+        dam_type (str): Type of dam material ('concrete', 'earthfill').
         
     Returns:
         dict: The cells_data dictionary updated with risk scores and risk levels.
@@ -25,12 +26,17 @@ def risk_score(cells_data, config_path=None, weights_path=None):
         try:
             with open(weights_path, 'r', encoding='utf-8') as f:
                 weight_cfg = yaml.safe_load(f)
-                rw = weight_cfg.get("risk_weights", {})
+                rw_all = weight_cfg.get("risk_weights", {})
+                # If weights are partitioned by dam_type, load the specific partition
+                if dam_type in rw_all:
+                    rw = rw_all.get(dam_type, {})
+                else:
+                    rw = rw_all
                 w_temp = rw.get("temperature_deviation", w_temp)
                 w_seepage = rw.get("anomaly_size", w_seepage) # mapped to anomaly_size in config
                 w_loc = rw.get("location_criticality", w_loc)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[!] Error loading risk weights: {e}")
             
     cells = cells_data.get("cells", [])
     meta = cells_data.get("metadata", {})

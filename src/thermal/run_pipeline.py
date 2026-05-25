@@ -43,6 +43,13 @@ def main():
         default="configs/risk_weights.yaml",
         help="Path to risk weights yaml"
     )
+    parser.add_argument(
+        "--dam-type",
+        type=str,
+        default="concrete",
+        choices=["concrete", "earthfill"],
+        help="Type of dam material (concrete or earthfill)"
+    )
     
     args = parser.parse_args()
     
@@ -54,6 +61,7 @@ def main():
     print(f"[*] Output Path:  {args.output}")
     print(f"[*] Config file:  {args.config}")
     print(f"[*] Weights file: {args.weights}")
+    print(f"[*] Dam Type:     {args.dam_type.upper()}")
     print("---------------------------------------------------------")
     
     try:
@@ -78,7 +86,7 @@ def main():
         
         # 4. Detect anomalies (moisture/seepage)
         print("[4/6] Running anomaly and seepage detection...")
-        anomalies = anomaly_detection(temp_map)
+        anomalies = anomaly_detection(temp_map, args.config, args.dam_type)
         
         # Statistics on anomalies
         prob = anomalies["seepage_probability"]
@@ -92,7 +100,7 @@ def main():
         
         # 6. Calculate structural risk scores
         print("[6/6] Computing location-critical risk scores...")
-        final_data = risk_score(mapped_data, args.config, args.weights)
+        final_data = risk_score(mapped_data, args.config, args.weights, args.dam_type)
         
         # Summary calculations
         cells = final_data.get("cells", [])

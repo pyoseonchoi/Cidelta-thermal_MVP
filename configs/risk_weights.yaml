@@ -1,4 +1,10 @@
+# Material-specific risk weight allocation
 risk_weights:
-  temperature_deviation: 0.4
-  anomaly_size: 0.3
-  location_criticality: 0.3
+  concrete:
+    temperature_deviation: 0.4
+    anomaly_size: 0.3
+    location_criticality: 0.3
+  earthfill:
+    temperature_deviation: 0.5 # Higher weight on temperature/seepage anomaly for piping sensitivity
+    anomaly_size: 0.25
+    location_criticality: 0.25

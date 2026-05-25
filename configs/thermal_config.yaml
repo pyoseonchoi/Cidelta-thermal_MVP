@@ -1,4 +1,22 @@
 thermal_analysis:
-  threshold: 35.5
   normalization_range: [0, 255]
   color_map: "JET"
+
+# Material-specific parameters (including standard physical parameters for Korean agricultural dams)
+dam_types:
+  concrete:
+    thermal_conductivity: 1.6 # W/(m·K) (Concrete standard)
+    max_cooling_threshold: 3.5 # Maximum temperature drop considered for full anomaly score
+    seepage_center_temp: 1.2 # Temperature drop (Celsius) representing 50% probability of seepage
+    gaussian_kernel_size: 101 # Size of spatial baseline filter (needs to be odd)
+    risk_thresholds:
+      medium: 0.8 # cooling degree (Celsius) threshold for medium moisture
+      high: 2.0 # cooling degree (Celsius) threshold for high moisture
+  earthfill: # Korean standard agricultural soil dam
+    thermal_conductivity: 1.0 # W/(m·K) (Compacted soil/clay mixture)
+    max_cooling_threshold: 2.0 # Earthfill has lower thermal contrast; smaller drop means full anomaly
+    seepage_center_temp: 0.7 # Evaporative cooling is less intense but highly critical; center at 0.7°C drop
+    gaussian_kernel_size: 151 # Larger kernel to account for capillary wetness zones in soil
+    risk_thresholds:
+      medium: 0.5 # lower thresholds for soil to be highly sensitive to piping risk
+      high: 1.2
