@@ -46,15 +46,47 @@ def anomaly_detection(temp_map, config_path=None, dam_type="concrete"):
         except Exception as e:
             print(f"[!] Error loading config in anomaly_detection: {e}")
 
-    # Ensure kernel size is odd and valid
+    # Establish the 2D baseline template image using spatial filtering
+    # (keeps local spatial context and prevents horizontal background false positives)
     if kernel_size % 2 == 0:
         kernel_size += 1
-        
-    # Calculate local baseline temperature using a large Gaussian blur kernel
     local_mean = cv2.GaussianBlur(temp_map, (kernel_size, kernel_size), 0)
     
     # Delta T: Positive = warmer than surroundings, Negative = cooler than surroundings
     delta_t = temp_map - local_mean
+    
+    # Run the physical simulation to calculate the expected physical temperature drop (thermal signature)
+    # due to seepage under the current physical boundary conditions.
+    physical_drop = 2.5  # Fallback seepage cooling signature (Celsius)
+    try:
+        from src.thermal.ogs_integration import OgsIntegration
+        sim = OgsIntegration(config_path, dam_type)
+        
+        # Run wet (with seepage anomaly at the toe) and dry simulations
+        anomalies = [{'y': [sim.base_width - 15.0, sim.base_width], 'z': [0.0, 5.0], 'k': sim.k_anomaly}]
+        results_wet = sim.run_simulation(seepage_anomalies=anomalies)
+        results_dry = sim.run_simulation(seepage_anomalies=None)
+        
+        t_dry = np.array(results_dry["slope_temperatures"])
+        t_wet = np.array(results_wet["slope_temperatures"])
+        
+        # Calculate maximum temperature drop on the slope
+        temp_drop = np.maximum(0.0, t_dry - t_wet)
+        max_physical_drop = float(np.max(temp_drop))
+        
+        if max_physical_drop > 0.3:
+            physical_drop = max_physical_drop
+            print(f"      [+] Calibrated physical seepage cooling signature: {physical_drop:.2f}°C")
+    except Exception as e:
+        print(f"[!] Warning: Physics-based threshold calibration failed: {e}. Using default {physical_drop}°C signature.")
+
+    # Dynamically scale thresholds based on the physical temperature drop signature
+    max_cooling_threshold = physical_drop
+    t_medium = 0.3 * physical_drop
+    t_high = 0.6 * physical_drop
+    seepage_center_temp = 0.45 * physical_drop
+    
+    print(f"      [+] Dynamic physical thresholds -> High Risk: >={t_high:.2f}°C, Medium Risk: >={t_medium:.2f}°C")
     
     # Cooling magnitude (evaporative cooling from seepage)
     cooling = np.maximum(0.0, -delta_t)
