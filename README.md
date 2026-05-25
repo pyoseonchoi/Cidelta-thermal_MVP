@@ -15,6 +15,7 @@
 
 ## MVP 실행 흐름
 
+<수동>
 1. 1단계: Blender 지형 및 셀 생성
    - Blender에서 `blender/scripts/01_create_dam_cells.py` 스크립트를 실행합니다.
    - ➜ 댐의 기본 구조와 분석용 셀(Cell)들이 생성됩니다.
@@ -27,8 +28,8 @@
    - Blender에서 `blender/scripts/02_apply_thermal_result.py` 스크립트를 실행합니다.
    - ➜ 분석된 위험도 결과가 3D 셀의 색상으로 반영됩니다.
 
-*자동화 플로우 구현 예정
-이미지 기반 파이썬 코드 수행 -> Blender에 댐 및 위험도 자동 생성 Flow
+<자동화 플로우>
+python run_pipeline_auto --gui 실행시 바로 blender에 결과를 띄어줌
 ---
 
 
