@@ -51,20 +51,28 @@ def apply_thermal():
     print(" [*] Applying Dam Thermal Analysis Results in Blender")
     print("=========================================================")
     
-    # List of possible paths to find the thermal result JSON
-    blend_dir = os.path.dirname(bpy.data.filepath) if bpy.data.filepath else ""
-    candidate_paths = [
-        os.path.join(blend_dir, "..", "outputs", "thermal_json", "thermal_result.json"),
-        os.path.join(blend_dir, "outputs", "thermal_json", "thermal_result.json"),
-        os.path.join(os.getcwd(), "outputs", "thermal_json", "thermal_result.json"),
-        "C:\\Users\\user\\Desktop\\Cidelta-thermal_MVP\\outputs\\thermal_json\\thermal_result.json"
-    ]
-    
-    json_path = None
-    for path in candidate_paths:
-        if path and os.path.exists(path):
-            json_path = os.path.abspath(path)
-            break
+    # Determine project root
+    if '__file__' in globals():
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    else:
+        project_root = os.getcwd()
+        
+    json_path = os.path.join(project_root, "outputs", "thermal_json", "thermal_result.json")
+    if not os.path.exists(json_path):
+        # List of possible paths to find the thermal result JSON as fallback
+        blend_dir = os.path.dirname(bpy.data.filepath) if bpy.data.filepath else ""
+        candidate_paths = [
+            os.path.join(blend_dir, "..", "outputs", "thermal_json", "thermal_result.json"),
+            os.path.join(blend_dir, "outputs", "thermal_json", "thermal_result.json"),
+            os.path.join(os.getcwd(), "outputs", "thermal_json", "thermal_result.json"),
+            "C:\\Users\\user\\Desktop\\Cidelta-thermal_MVP\\outputs\\thermal_json\\thermal_result.json"
+        ]
+        
+        json_path = None
+        for path in candidate_paths:
+            if path and os.path.exists(path):
+                json_path = os.path.abspath(path)
+                break
             
     if not json_path:
         print("[!] Error: thermal_result.json not found in candidate paths:")
@@ -129,6 +137,16 @@ def apply_thermal():
     print(f"      Mapped cell objects:  {updated_count}")
     if missing_count > 0:
         print(f"      Unmatched cell names: {missing_count} (ignored)")
+        
+    # Save the analyzed blend file
+    blend_output_dir = os.path.join(project_root, "blender", "scenes")
+    os.makedirs(blend_output_dir, exist_ok=True)
+    blend_path = os.path.join(blend_output_dir, "dam_scene_analyzed.blend")
+    try:
+        bpy.ops.wm.save_as_mainfile(filepath=blend_path)
+        print(f"[*] Saved analyzed blend file to: {blend_path}")
+    except Exception as e:
+        print(f"[!] Could not save analyzed blend file: {e}")
     print("=========================================================")
 
 if __name__ == "__main__":

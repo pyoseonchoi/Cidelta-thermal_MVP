@@ -691,12 +691,15 @@ output = {
     "cells": all_cell_records
 }
 
-base_dir = os.path.dirname(bpy.data.filepath) if bpy.data.filepath else os.path.join(os.path.expanduser("~"), "Desktop")
+# Determine project root
+if '__file__' in globals():
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+else:
+    project_root = os.getcwd()
 
-if not os.path.isdir(base_dir):
-    base_dir = os.path.expanduser("~")
-
-json_path = os.path.join(base_dir, "dam_attached_body_outer_cells_directional_risk.json")
+output_dir = os.path.join(project_root, "outputs", "blender_json")
+os.makedirs(output_dir, exist_ok=True)
+json_path = os.path.join(output_dir, "dam_attached_body_outer_cells_directional_risk.json")
 
 with open(json_path, "w", encoding="utf-8") as f:
     json.dump(output, f, ensure_ascii=False, indent=2)
@@ -730,6 +733,16 @@ for area in bpy.context.screen.areas:
         for space in area.spaces:
             if space.type == 'VIEW_3D':
                 space.clip_end = 1000
+
+# Save the blend file
+blend_output_dir = os.path.join(project_root, "blender", "scenes")
+os.makedirs(blend_output_dir, exist_ok=True)
+blend_path = os.path.join(blend_output_dir, "dam_scene.blend")
+try:
+    bpy.ops.wm.save_as_mainfile(filepath=blend_path)
+    print(f"Saved blend file to: {blend_path}")
+except Exception as e:
+    print(f"Could not save blend file (normal if not running in Blender/headless context): {e}")
 
 print("===== Finished =====")
 print("Continuous dam body is attached.")
