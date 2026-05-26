@@ -76,4 +76,27 @@ python -m src.thermal.run_pipeline \
 
 ---
 
+## 🌐 웹 테스트용 프론트엔드 (Web Testing Frontend)
+
+댐 열화상 분석 및 Blender Headless 3D 렌더링 과정을 웹 브라우저에서 직관적으로 검증할 수 있는 테스트용 대시보드를 제공합니다.
+
+### 1. 가상환경 패키지 설치
+웹 서버 구동에 필요한 라이브러리(`fastapi`, `uvicorn`, `python-multipart`, `requests`)를 설치합니다:
+```bash
+.venv\Scripts\pip install fastapi uvicorn python-multipart requests
+```
+
+### 2. 웹 서버 실행
+프로젝트 루트에서 다음 명령어를 실행하여 로컬 개발 서버를 구동합니다:
+```bash
+.venv\Scripts\python web_server.py
+```
+- 서버 주소: `http://127.0.0.1:8000`
+
+### 3. 기능 안내
+- **데이터 업로드**: 드래그 앤 드롭 또는 클릭하여 열화상 이미지를 업로드할 수 있습니다.
+- **매티리얼 설정**: 콘크리트(Concrete) 또는 필댐(Earthfill) 재질을 설정할 수 있습니다.
+- **실시간 콘솔 로그**: 파이프라인(Blender 셀 생성 ➜ Python 열화상 분석 ➜ Blender 리스크 색상 투영 및 3D 렌더링)의 표준 출력을 웹상의 콘솔 창에서 실시간으로 확인할 수 있습니다.
+- **분석 대시보드**: 3D Blender 렌더 이미지와 원본 이미지 탭을 제공하며, 위험도 단계별 셀 개수 및 온도 수치 통계를 대시보드 카드에 자동 시각화합니다.
+
 

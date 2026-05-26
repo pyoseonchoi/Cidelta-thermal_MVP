@@ -56,7 +56,8 @@ def make_mat(name, color, alpha=1.0):
     mat.use_nodes = True
     mat.diffuse_color = color
 
-    bsdf = mat.node_tree.nodes.get("Principled BSDF")
+    # Find Principled BSDF node robustly by type (works in non-English locales like Korean Blender)
+    bsdf = next((n for n in mat.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
     if bsdf:
         if "Base Color" in bsdf.inputs:
             bsdf.inputs["Base Color"].default_value = color
@@ -74,6 +75,7 @@ def make_mat(name, color, alpha=1.0):
             mat.use_transparency_overlap = True
 
     return mat
+
 
 mat_body = make_mat("Continuous_Dam_Body_Context", (0.62, 0.52, 0.40, 0.30), 0.30)
 mat_water = make_mat("Water", (0.15, 0.42, 0.95, 0.35), 0.35)
@@ -688,13 +690,19 @@ print(f"Saved to: {json_path}")
 # 17. 조명 / 카메라
 # =========================================================
 
-bpy.ops.object.light_add(type='AREA', location=(35, -60, 70))
+# Create a Sun light to illuminate the entire scene evenly (great for large outdoor structures like dams)
+bpy.ops.object.light_add(type='SUN', location=(35, 130, 100))
 light = bpy.context.object
-light.name = "Area Light"
-light.data.energy = 1200
-light.data.size = 15
+light.name = "Sun Light"
+light.data.energy = 4.0  # Sun light strength
 
-bpy.ops.object.camera_add(location=(100, -120, 55))
+# Rotate the sun to point directly towards the center of the dam's downstream face
+target = Vector((DAM_LENGTH_X / 2, BASE_WIDTH_Y / 2, HEIGHT_Z / 2))
+direction = target - light.location
+light.rotation_euler = direction.to_track_quat('-Z', 'Y').to_euler()
+
+
+bpy.ops.object.camera_add(location=(100, 190, 55))
 cam = bpy.context.object
 cam.name = "Camera"
 

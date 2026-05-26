@@ -4,7 +4,7 @@ import os
 
 def make_thermal_material(name, color, alpha=1.0):
     """
-    Creates or retrieves a material with custom base color and transparency.
+    Creates or retrieves a material with custom base color, transparency, and self-illumination.
     """
     mat = bpy.data.materials.get(name)
     if not mat:
@@ -28,6 +28,15 @@ def make_thermal_material(name, color, alpha=1.0):
         node_bsdf.inputs["Alpha"].default_value = alpha
     if "Roughness" in node_bsdf.inputs:
         node_bsdf.inputs["Roughness"].default_value = 0.5
+        
+    # Add self-illumination (emission) so cells are bright and easy to read
+    if "Emission Color" in node_bsdf.inputs:
+        node_bsdf.inputs["Emission Color"].default_value = (color[0], color[1], color[2], 1.0)
+    elif "Emission" in node_bsdf.inputs:
+        node_bsdf.inputs["Emission"].default_value = (color[0], color[1], color[2], 1.0)
+        
+    if "Emission Strength" in node_bsdf.inputs:
+        node_bsdf.inputs["Emission Strength"].default_value = 1.0
         
     # Link nodes
     links.new(node_bsdf.outputs["BSDF"], node_output.inputs["Surface"])
