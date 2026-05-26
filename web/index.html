@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cidelta Thermal Analysis Console</title>
+    <!-- Google Fonts: Inter & JetBrains Mono for logs -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-container">
+            <div class="logo-area">
+                <span class="logo-dot"></span>
+                <h1>CIDELTA <span>Thermal Analysis MVP</span></h1>
+            </div>
+            <div class="system-status">
+                <span class="status-indicator online"></span>
+                <span class="status-text">System Active</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="app-main">
+        <div class="grid-container">
+            <!-- Left Panel: Controls & Logs -->
+            <section class="panel-left">
+                <div class="card upload-card">
+                    <h2>1. 데이터 업로드</h2>
+                    <p class="card-subtitle">댐의 열화상 이미지(PNG/JPG)를 업로드하세요.</p>
+                    
+                    <form id="analysis-form">
+                        <div class="dropzone" id="dropzone">
+                            <input type="file" id="file-input" accept="image/*" class="file-input">
+                            <div class="dropzone-content">
+                                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                <span class="dropzone-text">이미지를 드래그하거나 클릭하여 선택</span>
+                                <span class="file-info" id="file-info">선택된 파일 없음</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">댐 재질 선택 (Dam Material)</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="dam-type" value="concrete" checked>
+                                    <span class="radio-button-custom"></span>
+                                    콘크리트 (Concrete)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="dam-type" value="earthfill">
+                                    <span class="radio-button-custom"></span>
+                                    필댐 (Earthfill)
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
+                            <span class="btn-text">분석 및 3D 렌더링 실행</span>
+                            <span class="spinner" id="spinner"></span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card logs-card">
+                    <div class="card-header-actions">
+                        <h2>2. 분석 및 렌더링 로그</h2>
+                        <button class="btn-clear" id="clear-logs">Clear</button>
+                    </div>
+                    <div class="console-wrapper">
+                        <div class="console-output" id="console-output">
+                            <div class="log-line system">[SYSTEM] Cidelta Thermal Console이 준비되었습니다. 이미지 파일을 대기 중입니다.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Results -->
+            <section class="panel-right">
+                <div class="card results-card" id="results-placeholder">
+                    <div class="empty-state">
+                        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5 3 19 3 23 8 23 21 1 21 1 8 5 3"></polygon>
+                            <rect x="1" y="8" width="22" height="13"></rect>
+                            <path d="M5 3v5"></path>
+                            <path d="M19 3v5"></path>
+                            <path d="M10 12h4"></path>
+                        </svg>
+                        <h3>분석 결과가 여기에 표시됩니다</h3>
+                        <p>왼쪽 패널에서 이미지를 업로드하고 분석을 시작하세요. 댐 열화상 분석 및 Blender Headless 3D 렌더링 결과가 표시됩니다.</p>
+                    </div>
+                </div>
+
+                <div class="card results-card hidden" id="results-display">
+                    <h2>3. 분석 결과 & 3D 렌더링</h2>
+                    <p class="card-subtitle" id="result-meta">세션 ID: -</p>
+
+                    <!-- Tabs for Images -->
+                    <div class="tab-container">
+                        <div class="tab-headers">
+                            <button class="tab-button active" data-tab="tab-render">3D Blender Render 결과</button>
+                            <button class="tab-button" data-tab="tab-original">원본 열화상 이미지</button>
+                        </div>
+                        
+                        <div class="tab-content active" id="tab-render">
+                            <div class="image-viewer">
+                                <img src="" alt="Blender Render View" id="result-render-img">
+                            </div>
+                        </div>
+                        <div class="tab-content" id="tab-original">
+                            <div class="image-viewer">
+                                <img src="" alt="Original Thermal View" id="result-original-img">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Dashboard -->
+                    <div class="stats-section">
+                        <h3>댐 안전성 위험도 통계</h3>
+                        <div class="stats-grid">
+                            <div class="stat-tile risk-3">
+                                <span class="stat-label">고위험군 셀 (Risk Level 3)</span>
+                                <span class="stat-value" id="stat-risk-3">0</span>
+                                <span class="stat-desc">물리적 손상/누수 가능성 높음</span>
+                            </div>
+                            <div class="stat-tile risk-2">
+                                <span class="stat-label">중위험군 셀 (Risk Level 2)</span>
+                                <span class="stat-value" id="stat-risk-2">0</span>
+                                <span class="stat-desc">정밀 모니터링 필요</span>
+                            </div>
+                            <div class="stat-tile risk-1">
+                                <span class="stat-label">저위험군 셀 (Risk Level 1)</span>
+                                <span class="stat-value" id="stat-risk-1">0</span>
+                                <span class="stat-desc">가벼운 열 이상 징후</span>
+                            </div>
+                            <div class="stat-tile risk-0">
+                                <span class="stat-label">정상 셀 (Risk Level 0)</span>
+                                <span class="stat-value" id="stat-risk-0">0</span>
+                                <span class="stat-desc">구조적 안정 영역</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Details -->
+                    <div class="details-section">
+                        <h3>세부 데이터 요약</h3>
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">총 그리드 셀 개수</span>
+                                <span class="detail-val" id="detail-total-cells">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">수분 침투 징후 (High/Medium)</span>
+                                <span class="detail-val" id="detail-moisture">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">평균 분석 온도</span>
+                                <span class="detail-val" id="detail-mean-temp">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">검출 온도 범위</span>
+                                <span class="detail-val" id="detail-temp-range">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>&copy; 2026 CIDELTA Dam Thermal Analysis MVP. All rights reserved.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
