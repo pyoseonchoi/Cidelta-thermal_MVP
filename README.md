@@ -3,6 +3,9 @@
 이 프로젝트는 댐의 열화상 이미지를 분석하여 이상 징후를 감지하고 위험도를 평가하기 위한 MVP(Minimum Viable Product)입니다. 
 열화상 이미지 프로세싱과 Blender를 이용한 3D 시각화 기능을 통합하여 제공합니다.
 
+<img width="2172" height="1410" alt="image" src="https://github.com/user-attachments/assets/11589c32-550f-43e9-8c6c-8a80ea0fde40" />
+
+
 
 ## 📂 프로젝트 구조
 
@@ -28,8 +31,6 @@
    - Blender에서 `blender/scripts/02_apply_thermal_result.py` 스크립트를 실행합니다.
    - ➜ 분석된 위험도 결과가 3D 셀의 색상으로 반영됩니다.
 
-<자동화 플로우>
-python run_pipeline_auto --gui 실행시 바로 blender에 결과를 띄어줌
 ---
 
 
