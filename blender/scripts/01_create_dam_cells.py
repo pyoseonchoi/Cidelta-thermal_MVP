@@ -78,7 +78,6 @@ def make_mat(name, color, alpha=1.0):
 
 
 mat_body = make_mat("Continuous_Dam_Body_Context", (0.62, 0.52, 0.40, 0.30), 0.30)
-mat_water = make_mat("Water", (0.15, 0.42, 0.95, 0.35), 0.35)
 
 mat_selector = make_mat("Slice_Selector_Transparent", (1.0, 1.0, 1.0, 0.06), 0.06)
 mat_boundary = make_mat("5m_Boundary_Black", (0.0, 0.0, 0.0, 1.0))
@@ -211,7 +210,7 @@ main_collection.children.link(selector_collection)
 boundary_collection = bpy.data.collections.new("04_Visible_5m_Boundary_Lines")
 main_collection.children.link(boundary_collection)
 
-context_collection = bpy.data.collections.new("05_Water_And_Context")
+context_collection = bpy.data.collections.new("05_Farmland_And_Context")
 main_collection.children.link(context_collection)
 
 # =========================================================
@@ -512,22 +511,61 @@ def create_cells_for_slice(x0, x1, slice_id, root_collection, json_records):
             json_records.append(record)
 
 # =========================================================
-# 13. 물 생성
+# 13. 농지 생성 (Farmland Generation)
 # =========================================================
 
-def create_box(name, minx, maxx, miny, maxy, minz, maxz, mat, collection):
-    verts = [
-        (minx, miny, minz),
-        (maxx, miny, minz),
-        (maxx, maxy, minz),
-        (minx, maxy, minz),
-        (minx, miny, maxz),
-        (maxx, miny, maxz),
-        (maxx, maxy, maxz),
-        (minx, maxy, maxz),
+def create_farmland(name, minx, maxx, miny, maxy, collection):
+    import random
+    rng = random.Random(42)
+
+    # 농지 구획별 다양한 색상 (Deep green, Light green, Golden wheat, Plowed soil, Grassland)
+    farmland_colors = [
+        (0.18, 0.38, 0.15, 1.0),
+        (0.32, 0.58, 0.22, 1.0),
+        (0.80, 0.68, 0.25, 1.0),
+        (0.45, 0.34, 0.22, 1.0),
+        (0.28, 0.42, 0.20, 1.0),
     ]
 
-    faces = [
+    mats = []
+    for idx, color in enumerate(farmland_colors):
+        mat = make_mat(f"Farmland_Crop_{idx}", color)
+        # 흙과 농지는 반사광이 없도록 거칠기(Roughness)를 높게 설정
+        bsdf = next((n for n in mat.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
+        if bsdf and "Roughness" in bsdf.inputs:
+            bsdf.inputs["Roughness"].default_value = 0.90
+        mats.append(mat)
+
+    # 밭고랑 및 농로(Path) 재질
+    mat_path = make_mat("Farmland_Path", (0.50, 0.45, 0.38, 1.0))
+    bsdf_p = next((n for n in mat_path.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
+    if bsdf_p and "Roughness" in bsdf_p.inputs:
+        bsdf_p.inputs["Roughness"].default_value = 0.95
+
+    # 격자 형태로 농지 구획 분할
+    cols = 8
+    rows = 6
+
+    dx = (maxx - minx) / cols
+    dy = (maxy - miny) / rows
+
+    # 농로 너비
+    path_thickness = 0.6
+
+    base_z = 8.0
+
+    # 전체 농로 및 바닥 역할을 할 베이스 블록 생성
+    verts_base = [
+        (minx, miny, base_z - 0.2),
+        (maxx, miny, base_z - 0.2),
+        (maxx, maxy, base_z - 0.2),
+        (minx, maxy, base_z - 0.2),
+        (minx, miny, base_z),
+        (maxx, miny, base_z),
+        (maxx, maxy, base_z),
+        (minx, maxy, base_z),
+    ]
+    faces_base = [
         (0, 1, 2, 3),
         (4, 7, 6, 5),
         (0, 4, 5, 1),
@@ -535,16 +573,51 @@ def create_box(name, minx, maxx, miny, maxy, minz, maxz, mat, collection):
         (2, 6, 7, 3),
         (3, 7, 4, 0),
     ]
+    mesh_base = bpy.data.meshes.new(name + "_Base_Mesh")
+    mesh_base.from_pydata(verts_base, [], faces_base)
+    mesh_base.update()
+    obj_base = bpy.data.objects.new(name + "_Base", mesh_base)
+    collection.objects.link(obj_base)
+    obj_base.data.materials.append(mat_path)
 
-    mesh = bpy.data.meshes.new(name + "_Mesh")
-    mesh.from_pydata(verts, [], faces)
-    mesh.update()
+    # 구획별 작물 블록 생성
+    for r in range(rows):
+        y0 = miny + r * dy + path_thickness
+        y1 = miny + (r + 1) * dy - path_thickness
 
-    obj = bpy.data.objects.new(name, mesh)
-    collection.objects.link(obj)
-    obj.data.materials.append(mat)
+        for c in range(cols):
+            x0 = minx + c * dx + path_thickness
+            x1 = minx + (c + 1) * dx - path_thickness
 
-    return obj
+            mat = rng.choice(mats)
+            h = rng.uniform(0.1, 0.3)  # 미세한 작물 높이차 부여
+
+            verts_crop = [
+                (x0, y0, base_z),
+                (x1, y0, base_z),
+                (x1, y1, base_z),
+                (x0, y1, base_z),
+                (x0, y0, base_z + h),
+                (x1, y0, base_z + h),
+                (x1, y1, base_z + h),
+                (x0, y1, base_z + h),
+            ]
+            faces_crop = [
+                (0, 1, 2, 3),
+                (4, 7, 6, 5),
+                (0, 4, 5, 1),
+                (1, 5, 6, 2),
+                (2, 6, 7, 3),
+                (3, 7, 4, 0),
+            ]
+
+            mesh_crop = bpy.data.meshes.new(f"Farmland_Patch_{r}_{c}_Mesh")
+            mesh_crop.from_pydata(verts_crop, [], faces_crop)
+            mesh_crop.update()
+
+            obj_crop = bpy.data.objects.new(f"Farmland_Patch_{r}_{c}", mesh_crop)
+            collection.objects.link(obj_crop)
+            obj_crop.data.materials.append(mat)
 
 # =========================================================
 # 14. Selector 선택 시 해당 슬라이스 셀 같이 선택
@@ -606,16 +679,13 @@ for k in range(num_slices):
     create_slice_selector(x0, x1, k, selector_collection)
     create_cells_for_slice(x0, x1, k, cell_root_collection, all_cell_records)
 
-# 물
-create_box(
-    "Water_Block",
+# 농지 (Farmland)
+create_farmland(
+    "Farmland_Block",
+    -50.0,
+    120.0,
+    -100.0,
     0.0,
-    DAM_LENGTH_X,
-    -16.0,
-    1.2,
-    0.0,
-    HEIGHT_Z * 0.85,
-    mat_water,
     context_collection
 )
 
