@@ -3,8 +3,10 @@
 이 프로젝트는 댐의 열화상 이미지를 분석하여 이상 징후를 감지하고 위험도를 평가하기 위한 MVP(Minimum Viable Product)입니다. 
 열화상 이미지 프로세싱과 Blender를 이용한 3D 시각화 기능을 통합하여 제공합니다.
 
+<물 댐>
 <img width="2172" height="1410" alt="image" src="https://github.com/user-attachments/assets/11589c32-550f-43e9-8c6c-8a80ea0fde40" />
 
+<산지 댐, 농지 댐>
 
 
 ## 📂 프로젝트 구조
